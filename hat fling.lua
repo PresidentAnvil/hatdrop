@@ -86,3 +86,6 @@ task.wait(0.33)
 velocityCon:Disconnect()
 velocityCon = nil
 hum.Health = 0
+local newChar = lp.CharacterAdded:Wait()
+local newHrp = newChar:WaitForChild("HumanoidRootPart")
+newHrp.CFrame = oldPos
