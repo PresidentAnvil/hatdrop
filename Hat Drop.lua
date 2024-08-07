@@ -56,12 +56,16 @@ if c then
                 local weld = han and han:FindFirstChildWhichIsA("Weld")
                 if weld then
                     sethiddenproperty(v, "BackendAccoutrementState", 0)
-                    weld:GetPropertyChangedSignal("Parent"):Wait()
-                    han.Velocity = Vector3.new(0, 30, 0)
-                    han.CFrame = old
+                    --weld:GetPropertyChangedSignal("Parent"):Wait()
+                    local a = Instance.new("SelectionBox")
+                    a.Parent = han
+                    a.Adornee = han
+                    han:BreakJoints()
+                    han.AssemblyLinearVelocity = Vector3.new(0, 30, 0)
+                    han.CFrame = CFrame.new(old.Position) * CFrame.new(0, 0, 0)
                     local con
                     con = runservice.PostSimulation:Connect(function()
-                        han.Velocity = Vector3.new(0, 30, 0)
+                        han.AssemblyLinearVelocity = Vector3.new(0, 30, 0)
                         han.CFrame = old
                     end)
                 end
