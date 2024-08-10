@@ -1,11 +1,12 @@
 -- work in progresshjghjss 
+r = math.rad
 limbs = {
-    ["Left Arm"] = "Pretzel Friend Sitting",
-    ["Right Arm"] = "UGC Monster",
-    ["Right Leg"] = "",
-    ["Left Leg"] = "",
-    ["Torso"] = "Tommy Text logo",
-    ["Head"] = "Samurai Hair",
+    ["Left Arm"] = {"Unloaded head",CFrame.Angles(0,0,r(90))},
+    ["Right Arm"] = {"MeshPartAccessory",CFrame.Angles(0,0,r(90))},
+    ["Right Leg"] = {"RARM",CFrame.Angles(0,0,r(90))},
+    ["Left Leg"] = {"LARM",CFrame.Angles(0,0,r(90))},
+    ["Torso"] = {"Black",CFrame.new(0,0,0)},
+    ["Head"] = {"Meshes/headAccessory",CFrame.new(0,0,0)},
 }
 
 
@@ -13,8 +14,14 @@ players = game:GetService("Players")
 p = players.LocalPlayer
 local FakeCharacter
 local function Align(Part1,Part0,CFrameOffset) 
-    game:GetService("RunService").PostSimulation:Connect(function()
-        Part1.CFrame = Part0.CFrame
+    local c = game:GetService("RunService").PostSimulation:Connect(function()
+        Part1.CFrame = Part0.CFrame * CFrameOffset
+    end)
+    Part1.Destroying:Connect(function()
+        c:Disconnect()
+    end)
+    Part0.Destroying:Connect(function()
+        c:Disconnect()
     end)
 end
 
@@ -33,16 +40,17 @@ function hatdrop(c)
         sethiddenproperty(v,"BackendAccoutrementState",0)
         task.delay(1.95,function()
             local con = game:GetService"RunService".PostSimulation:Connect(function(dt)
-                v.Handle.AssemblyLinearVelocity = Vector3.new(999,999,999)
+                v.Handle.AssemblyLinearVelocity = Vector3.new(15,15,15)
             end)
             v.Handle.Destroying:Connect(function()
                 con:Disconnect()
             end)
         end)
     end
+    wait(0.5)
     c.HumanoidRootPart.CFrame *= CFrame.Angles(math.rad(90),0,0)
     c.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-    game:GetService("TweenService"):Create(c.HumanoidRootPart,TweenInfo.new(1,Enum.EasingStyle.Linear),{CFrame = CFrame.new(a.X,-500,a.Z)* CFrame.Angles(math.rad(90),0,0)}):Play()
+    game:GetService("TweenService"):Create(c.HumanoidRootPart,TweenInfo.new(2,Enum.EasingStyle.Linear),{CFrame = CFrame.new(a.X,-499,a.Z)* CFrame.Angles(math.rad(90),0,0)}):Play()
     print(".")
     c.ChildRemoved:Connect(function(v)
         if v:IsA("BasePart") then
@@ -56,28 +64,8 @@ function hatdrop(c)
             c.HumanoidRootPart.AssemblyAngularVelocity = Vector3.zero
         end
     end)()
-    task.wait(0.95)
+    task.wait(1.95)
     c.Humanoid.Health = 0
-end
-
-function FEScript(c,f)
-    local s,e = pcall(function()
-        Align(c.Black.Handle,f.Torso,CFrame.new(0,0,0))
-        local thrust = Instance.new("BodyThrust",c.Black.Handle)
-        thrust.Force = Vector3.new(9e9,9e9,9e9)
-    end)
-    if not s then print(e) end
-    local s,e = pcall(function()
-        Align(c.LARM.Handle,f["Left Arm"],CFrame.new(0,0,0)*CFrame.Angles(math.rad(90),0,0))
-        local thrust = Instance.new("BodyThrust",c.Black.Handle)
-        thrust.Force = Vector3.new(9e9,9e9,9e9)
-    end)
-    if not s then print(e) end
-    local s,e = pcall(function()
-        Align(c.RARM.Handle,f["Right Arm"],CFrame.new(0,0,0))
-    end)
-    if not s then print(e) end
-    
 end
 
 p.Character.Archivable = true
@@ -103,6 +91,14 @@ game:GetService("RunService").PostSimulation:Connect(function()
 		end
 	end
 end)
+game:GetService("RunService").PostSimulation:Connect(function()
+    if limbs["Left Leg"][1] then
+        p.Character[limbs["Left Leg"][1]].Handle.CanCollide = false
+    end
+    if limbs["Right Leg"][1] then
+        p.Character[limbs["Right Leg"][1]].Handle.CanCollide = false
+    end
+end)
 game:GetService("RunService").Heartbeat:Connect(function()
 	for i,v in ipairs(FakeCharacter:GetDescendants()) do
 		if v:IsA("BasePart") then 
@@ -113,9 +109,15 @@ end)
 hatdrop(p.Character)
 task.wait(0.2)
 for i,v in pairs(limbs) do
-    pcall(function()
-        Align(p.Character[v].Handle,FakeCharacter[i],CFrame.new(0,0,0))
-    end)
+    local name, cf = unpack(v)
+    if name == "" then continue end
+    coroutine.wrap(function()
+        local a = p.Character:WaitForChild(name)
+        local s,e = pcall(function()
+            Align(a.Handle,FakeCharacter[i],cf)
+        end)
+        if not s then print(e) end
+    end)()
 end
 FakeCharacter.Parent = workspace
 local LVecPart = Instance.new("Part", workspace) 
@@ -202,17 +204,14 @@ p.CharacterAdded:Connect(function(char)
     task.wait(0.4)
     workspace.Camera.CameraSubject = FakeCharacter.Humanoid
     for i,v in pairs(limbs) do
-        if v == "" then continue end
+        local name, cf = unpack(v)
+        if name == "" then continue end
         coroutine.wrap(function()
-            local a = char:WaitForChild(v)
+            local a = char:WaitForChild(name)
             local s,e = pcall(function()
-                Align(a.Handle,FakeCharacter[i],CFrame.new(0,0,0))
+                Align(a.Handle,FakeCharacter[i],cf)
             end)
             if not s then print(e) end
         end)()
     end
-    
-    --Align(char["Meshes/headAccessory"].Handle,FakeCharacter.Torso,CFrame.new(0,0,0))
-    --Align(char.MeshPartAccessory.Handle,FakeCharacter["Left Arm"],CFrame.Angles(0,0,math.rad(90)))
-    --Align(char["Unloaded head"].Handle,FakeCharacter["Right Arm"],CFrame.Angles(0,0,math.rad(90)))
 end)
